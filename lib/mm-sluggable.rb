@@ -16,23 +16,23 @@ module MongoMapper
             :method       => :parameterize,
             :scope        => nil,
             :max_length   => 256,
-            :callback     => [:before_validation, {:on => :create}]
+            :always_update => true, # allow always updating slug...
           }.merge(options)
+          # index => is deprecated added ensure index instead
+          key slug_options[:key], String#, :index => slug_options[:index]
+          self.ensure_index(slug_options[:key])
 
-          key slug_options[:key], String, :index => slug_options[:index]
-
-          if slug_options[:callback].is_a?(Array)
-            self.send(slug_options[:callback][0], :set_slug, slug_options[:callback][1])
-          else
-            self.send(slug_options[:callback], :set_slug)
-          end
+          before_validation :set_slug
         end
       end
 
       module InstanceMethods
         def set_slug
           options = self.class.slug_options
-          return unless self.send(options[:key]).blank?
+          
+          if options[:always_update] == false
+            return unless self.send(options[:key]).blank? 
+          end
 
           to_slug = self[options[:to_slug]]
           return if to_slug.blank?
