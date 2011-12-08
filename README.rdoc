@@ -2,6 +2,15 @@
 
 Tiny plugin for MongoMapper to cache a slugged version of a field
 
+== Modifications done:
+  Will always update slug on save/update_attributes
+  Cannot change slug key from :slug (will be fixed later)
+  Using regexp to query for free slugs
+    Example:
+      you have my-title-1 and my-title-3 creating a new slug will generate my-title-2
+
+  Why always change slugs? Feels better to have same slug as title...
+
 == Usage
 
 Either load it into all models, or individual models:
@@ -20,8 +29,10 @@ Then call sluggable to configure it
 
 Available options are:
 
+Some of the options are broken in this version.... Will be fixed later
+
 * :scope - scope to a specific field (default - nil)
-* :key - what the slug key is called (default - :slug)
+* :key - what the slug key is called (default - :slug) - NOTE, don't change this one
 * :index - whether to add an index for the slug (default - true)
 * :method - what method to call on the field to sluggify it (default - :parameterize)
 * :callback - when to trigger the slugging (default - :before_validation_on_create)
@@ -47,8 +58,8 @@ IE assuming we already have an item with the slug of "dave", the slug will be ge
 * Send me a pull request. Bonus points for topic branches.
 
 == Install
-
- $ gem install mm-sluggable
+Bundler: (You are most likely using bundler in your app...)
+gem 'mm-sluggable', :git => 'http://github.com/luuf/mm-sluggable.git'
 
 == Copyright
 
