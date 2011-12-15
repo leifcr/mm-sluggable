@@ -11,6 +11,12 @@ Tiny plugin for MongoMapper to cache a slugged version of a field
 
   Why always change slugs? Feels better to have same slug as title...
 
+  ensure_index had to be removed, due to the how mongo_mapper is built.
+  to have indexes for your slugs add this to initializers/mongo_mapper.rb
+  MyModel.ensure_index(:slug)
+
+  It's a good ide to have indexes for slugs if you use them for queries.
+
 == Usage
 
 Either load it into all models, or individual models:
@@ -33,7 +39,6 @@ Some of the options are broken in this version.... Will be fixed later
 
 * :scope - scope to a specific field (default - nil)
 * :key - what the slug key is called (default - :slug) - NOTE, don't change this one
-* :index - whether to add an index for the slug (default - true)
 * :method - what method to call on the field to sluggify it (default - :parameterize)
 * :callback - when to trigger the slugging (default - :before_validation_on_create)
 

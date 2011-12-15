@@ -20,7 +20,10 @@ module MongoMapper
           }.merge(options)
           # index => is deprecated added ensure index instead
           key slug_options[:key], String#, :index => slug_options[:index]
-          self.ensure_index(slug_options[:key])
+
+          # ensure_index have to be in an initializer. 
+          # breaks the option to have indexes in a plugin
+          # self.ensure_index(slug_options[:key])
 
           before_validation :set_slug
         end
@@ -33,7 +36,6 @@ module MongoMapper
           if options[:always_update] == false
             return unless self.send(options[:key]).blank? 
           end
-
 
           to_slug = self[options[:to_slug]]
           return if to_slug.blank?
