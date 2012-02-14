@@ -44,7 +44,7 @@ module MongoMapper
 
           # this should be modified to use options instead
           # no need to set, so return
-          return if (self.slug == the_slug)
+          return if (options[:key] == the_slug)
           # puts self.slug.inspect
           # puts the_slug.inspect
 
@@ -61,7 +61,7 @@ module MongoMapper
             new_slug_set = false
             used_slugs.each do |used_slug|
               # get the last digit through regex
-              next_digit = used_slug.slug[/(\d+)$/]
+              next_digit = used_slug.send(options[:key])[/(\d+)$/]
               if (!next_digit.nil?)
                 # catch any numbers that are in between and free
                 if ((next_digit.to_i - last_digit.to_i) > 1)
