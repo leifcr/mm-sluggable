@@ -20,13 +20,17 @@ describe "MongoMapper::Plugins::Sluggable" do
       lambda{
         @article.valid?
       }.should change(@article, :slug).from(nil).to("testing-123")
+      @article.save
     end
 
-    it "should add a version number if the slug conflicts" do
-      @klass.create(:title => "testing 123")
-      lambda{
-        @article.valid?
-      }.should change(@article, :slug).from(nil).to("testing-123-1")
+#    it "should save the first article" do
+#      @article = @klass.new(:title => "testing 123")
+#      @article.save
+#    end
+
+    it "should add a version number (1) if the slug conflicts" do
+      test_klass = @klass.create(:title => "testing 123", :description => "should add a version number (1) if the slug conflicts")
+      test_klass.slug.should eq("testing-123-1")
     end
 
     it "should truncate slugs over the max_length default of 256 characters" do
@@ -34,7 +38,36 @@ describe "MongoMapper::Plugins::Sluggable" do
       @article.valid?
       @article.slug.length.should == 256
     end
+
+    describe "testing inbetween replacements" do
+      it "should add a version number (2) if the slug conflicts" do
+        test_klass = @klass.create(:title => "testing 123", :description => "should add a version number (1) if the slug conflicts")
+        test_klass.slug.should eq("testing-123-2")
+      end
+
+      it "should add a version number (3) if the slug conflicts" do
+        test_klass = @klass.create(:title => "testing 123", :description => "should add a version number (1) if the slug conflicts")
+        test_klass.slug.should eq("testing-123-3")
+      end
+
+      it "should add a version number (4) if the slug conflicts" do
+        test_klass = @klass.create(:title => "testing 123", :description => "should add a version number (1) if the slug conflicts")
+        test_klass.slug.should eq("testing-123-4")
+      end
+
+      # it "should remove version (2) in between" do
+      #   test_klass = @klass.where(:slug => "testing-123-2").first
+      #   test_klass.destroy!
+      # end
+
+      # it "should add a version number (2) since it was destroyed and there is an open space" do
+      #   test_klass = @klass.create(:title => "testing 123", :description => "should add a version number (1) if the slug conflicts")
+      #   test_klass.slug.should eq("testing-123-2")
+      # end
+    end
+
   end
+
 
   describe "with scope" do
     before(:each) do
@@ -42,18 +75,26 @@ describe "MongoMapper::Plugins::Sluggable" do
       @article = @klass.new(:title => "testing 123", :account_id => 1)
     end
 
+    it "should save initial version with account_id scope" do
+      @article.save
+      test_klass = @article
+      test_klass.slug.should eq("testing-123")
+    end
+
     it "should add a version number if the slug conflics in the scope" do
-      @klass.create(:title => "testing 123", :account_id => 1)
-      lambda{
-        @article.valid?
-      }.should change(@article, :slug).from(nil).to("testing-123-1")
+      test_klass = @klass.create(:title => "testing 123", :account_id => 1, :description => "should add a version number if the slug conflics in the scope")
+      test_klass.slug.should eq("testing-123-1")
     end
 
     it "should not add a version number if the slug conflicts in a different scope" do
-      @klass.create(:title => "testing 123", :account_id => 2)
-      lambda{
-        @article.valid?
-      }.should change(@article, :slug).from(nil).to("testing-123")
+      test_klass = @klass.create(:title => "testing 123", :account_id => 2, :description => "should not add a version number if the slug conflicts in a different scope")
+      test_klass.slug.should eq("testing-123")
+    end
+  end
+
+  describe "drop the current klasses, to avoid conflict for further tests" do
+    it "should drop current klass db" do
+      @klass.collection.remove
     end
   end
 
@@ -117,4 +158,11 @@ describe "MongoMapper::Plugins::Sluggable" do
       @article.slug.length.should == 5
     end
   end
+
+  describe "drop everything when closing" do
+    it "should drop all the good stuff" do
+      @klass.collection.remove
+    end
+  end
+
 end

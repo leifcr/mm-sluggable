@@ -1,21 +1,6 @@
 = MongoMapper::Plugins::Sluggable
 
-Tiny plugin for MongoMapper to cache a slugged version of a field
-
-== Modifications done:
-  Will always update slug on save/update_attributes
-  Cannot change slug key from :slug (will be fixed later)
-  Using regexp to query for free slugs
-    Example:
-      you have my-title-1 and my-title-3 creating a new slug will generate my-title-2
-
-  Why always change slugs? Feels better to have same slug as title...
-
-  ensure_index had to be removed, due to the how mongo_mapper is built.
-  to have indexes for your slugs add this to initializers/mongo_mapper.rb
-  MyModel.ensure_index(:slug)
-
-  It's a good ide to have indexes for slugs if you use them for queries.
+Add slugs to your fields. And use it for URLS...
 
 == Usage
 
@@ -27,20 +12,39 @@ Either load it into all models, or individual models:
   # add to a specific model
   plugin MongoMapper::Plugins::Sluggable
 
-Then call sluggable to configure it
+  Then call sluggable to configure it
 
-  sluggable :title, :scope => :account_id
+    sluggable :title, :scope => :account_id
+
+  NOTE: The slugs will always be updated if you change the field it creates 
+  the slugs from. see options to change behaviour
+
+  Free slugs will be reused
+    Example:
+      you have my-title-1 and my-title-3 creating a new slug will generate my-title-2
+
+  Why always change slugs? Feels better to have same slug as title...
+
+== Improve performance on your models
+
+  This is important to get fast queries! (you will regret if you don't add it...)
+  Add an index to your models:
+
+  Read up on indexes here:
+  https://github.com/jnunemaker/mongomapper/issues/337
+
+  easiest is to add db/indexes.rb to your app, then add this to that file:
+    MyModel.ensure_index(:slug_key)
   
 == Options
 
 Available options are:
 
-Some of the options are broken in this version.... Will be fixed later
-
 * :scope - scope to a specific field (default - nil)
 * :key - what the slug key is called (default - :slug) - NOTE, don't change this one
 * :method - what method to call on the field to sluggify it (default - :parameterize)
 * :callback - when to trigger the slugging (default - :before_validation_on_create)
+* :always_update - Always update the slug on update/save/create etc.
 
 Eg.
 
@@ -52,7 +56,7 @@ This will slug the title to the title_slug key, scoped to the account, will use 
 
 If an item with the same slug exists, it will add a version number to the slug.
 
-IE assuming we already have an item with the slug of "dave", the slug will be generated as "dave-1"
+IE assuming we already have an item with the slug of "monkey", the slug will be generated as "monkey-1"
 
 == Note on Patches/Pull Requests
 

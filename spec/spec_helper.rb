@@ -17,9 +17,10 @@ def article_class
 
     key :title,       String
     key :account_id,  Integer
+    key :description, String
   end
 
-  klass.collection.remove
+  #klass.collection.remove
   klass
 end
 

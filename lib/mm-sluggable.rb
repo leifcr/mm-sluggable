@@ -12,20 +12,18 @@ module MongoMapper
           self.slug_options = {
             :to_slug      => to_slug,
             :key          => :slug,
-            :index        => true,
             :method       => :parameterize,
             :scope        => nil,
             :max_length   => 256,
             :always_update => true, # allow always updating slug...
+            :callback      => :before_validation,
+            :callback_on   => nil,            
           }.merge(options)
-          # index => is deprecated added ensure index instead
-          key slug_options[:key], String#, :index => slug_options[:index]
+          key slug_options[:key], String
 
-          # ensure_index have to be in an initializer. 
-          # breaks the option to have indexes in a plugin
-          # self.ensure_index(slug_options[:key])
-
-          before_validation :set_slug
+          #before_validation :set_slug
+          self.send(slug_options[:callback], :set_slug, {:on => slug_options[:callback_on]}) if slug_options[:callback] && slug_options[:callback_on]
+          self.send(slug_options[:callback], :set_slug) if slug_options[:callback] && slug_options[:callback_on].nil?          
         end
       end
 
@@ -47,16 +45,17 @@ module MongoMapper
         # puts self.slug.inspect
         # puts the_slug.inspect
 
-        # conds = {}
-        # conds[options[:key]]   = the_slug
-        # conds[options[:scope]] = self.send(options[:scope]) if options[:scope]
+        conds = {}
+        conds[options[:key]]   = the_slug
+        conds[options[:scope]] = self.send(options[:scope]) if options[:scope]
 
         # first see if there is a equal slug
-        used_slugs = self.class.where(options[:key] => "#{the_slug}")
+        used_slugs = self.class.where(conds)
         if (used_slugs.count > 0)
           last_digit = 0 # zero for last one...
           # if we are updating, check if the current slug is same as the one we want
-          used_slugs = self.class.where(options[:key] => /(#{the_slug}-\d+)/).sort(options[:key].asc)
+          conds[options[:key]] = /(#{the_slug}-\d+)/
+          used_slugs = self.class.where(conds).sort(options[:key].asc)
           new_slug_set = false
           used_slugs.each do |used_slug|
             # get the last digit through regex
