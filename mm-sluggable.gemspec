@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Richard Livsey", "Leif Ringstad"]
-  s.date = %q{2012-02-014}
+  s.date = %q{2012-02-14}
   s.email = %q{leifcr@gmail.com}
   s.extra_rdoc_files = ["README.rdoc"]
   s.files = ["LICENSE", "Rakefile", "README.rdoc", "spec", "lib/mm-sluggable.rb"]
