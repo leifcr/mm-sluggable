@@ -1,33 +1,37 @@
 # -*- encoding: utf-8 -*-
+require File.join File.dirname(__FILE__), '/lib/sluggable/version'
 
 Gem::Specification.new do |s|
-  s.name = %q{mm-sluggable}
-  s.version = "0.2.3"
+  s.name              = %q{mm-sluggable}
+  s.homepage          = %q{http://github.com/luuf/mm-sluggable}
 
-  s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Richard Livsey", "Leif Ringstad"]
-  s.date = %q{2012-02-14}
-  s.email = %q{leifcr@gmail.com}
-  s.extra_rdoc_files = ["README.rdoc"]
-  s.files = ["LICENSE", "Rakefile", "README.rdoc", "spec", "lib/mm-sluggable.rb"]
-  s.homepage = %q{http://github.com/luuf/mm-sluggable}
-  s.rdoc_options = ["--main", "README.rdoc"]
-  s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.6.2}
-  s.summary = %q{Tiny plugin for MongoMapper to cache a slugged version of a field}
+  s.summary           = %q{Tiny plugin for MongoMapper to cache a slugged version of a field. Based on Richard Livseys plugin}
 
-  if s.respond_to? :specification_version then
-    s.specification_version = 3
+  s.authors           = ["Leif Ringstad"]
+  s.email             = %q{leifcr@gmail.com}
+  s.version           = Sluggable::VERSION
+  s.platform          = Gem::Platform::RUBY
+  # s.files             = [ "Gemfile",
+  #                         "LICENSE", 
+  #                         "Rakefile", 
+  #                         "README.rdoc", 
+  #                         "spec", 
+  #                         "lib/mm-sluggable.rb"
+  #                         "lib/sluggable/version.rb"
+  #                       ]
+  # s.test_files        = Dir.glob('test/**/*')
+  s.files         = `git ls-files`.split("\n")
+  s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
 
-    if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<mongo_mapper>, [">= 0.9.0"])
-      s.add_development_dependency(%q<rspec>, [">= 0"])
-    else
-      s.add_dependency(%q<mongo_mapper>, [">= 0.9.0"])
-      s.add_dependency(%q<rspec>, [">= 0"])
-    end
-  else
-    s.add_dependency(%q<mongo_mapper>, [">= 0.9.0"])
-    s.add_dependency(%q<rspec>, [">= 0"])
-  end
+  s.require_paths     = ["lib"]
+
+  #s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
+  s.date              = %q{2012-02-14}
+  #s.extra_rdoc_files  = ["README.rdoc"]
+  #s.rdoc_options      = ["--main", "README.rdoc"]
+  s.rubygems_version  = %q{1.6.2}
+
+  s.add_dependency(%q<mongo_mapper>, [">= 0.11.0"])
+  s.add_development_dependency(%q<rspec>, [">= 0"])
+
 end
