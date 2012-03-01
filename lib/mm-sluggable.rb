@@ -37,13 +37,15 @@ module MongoMapper
         to_slug = self[options[:to_slug]]
         return if to_slug.blank?
 
+        # previous_slug = self[:key]
+
         the_slug = raw_slug = to_slug.send(options[:method]).to_s[0...options[:max_length]]
 
-        # this should be modified to use options instead
         # no need to set, so return
-        return if (options[:key] == the_slug)
-        # puts self.slug.inspect
-        # puts the_slug.inspect
+        return if (self.send(options[:key]) == the_slug)
+        # also do a regexp check,
+        # verify if the previous slug is "almost" the same as we want without digits/extras
+        return if (/(#{the_slug}-\d+)/.match(self.send(options[:key])) != nil)
 
         conds = {}
         conds[options[:key]]   = the_slug

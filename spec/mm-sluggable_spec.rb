@@ -23,11 +23,6 @@ describe "MongoMapper::Plugins::Sluggable" do
       @article.save
     end
 
-#    it "should save the first article" do
-#      @article = @klass.new(:title => "testing 123")
-#      @article.save
-#    end
-
     it "should add a version number (1) if the slug conflicts" do
       test_klass = @klass.create(:title => "testing 123", :description => "should add a version number (1) if the slug conflicts")
       test_klass.slug.should eq("testing-123-1")
@@ -39,31 +34,53 @@ describe "MongoMapper::Plugins::Sluggable" do
       @article.slug.length.should == 256
     end
 
-    describe "testing inbetween replacements" do
-      it "should add a version number (2) if the slug conflicts" do
-        test_klass = @klass.create(:title => "testing 123", :description => "should add a version number (1) if the slug conflicts")
-        test_klass.slug.should eq("testing-123-2")
-      end
+    it "should not change the slug on update" do
+      # this saves testing-123-2
+      @article.save
+      check_slug = @article.slug
+      @article.description = "new description"
+      @article.save
+      @article.slug.should eq(check_slug)
+    end
 
+    describe "testing inbetween replacements" do
       it "should add a version number (3) if the slug conflicts" do
-        test_klass = @klass.create(:title => "testing 123", :description => "should add a version number (1) if the slug conflicts")
+        test_klass = @klass.create(:title => "testing 123", :description => "should add a version number (3) if the slug conflicts")
         test_klass.slug.should eq("testing-123-3")
       end
 
       it "should add a version number (4) if the slug conflicts" do
-        test_klass = @klass.create(:title => "testing 123", :description => "should add a version number (1) if the slug conflicts")
+        test_klass = @klass.create(:title => "testing 123", :description => "should add a version number (4) if the slug conflicts")
         test_klass.slug.should eq("testing-123-4")
       end
 
-      # it "should remove version (2) in between" do
-      #   test_klass = @klass.where(:slug => "testing-123-2").first
-      #   test_klass.destroy!
-      # end
+      it "should add a version number (5) if the slug conflicts" do
+        test_klass = @klass.create(:title => "testing 123", :description => "should add a version number (5) if the slug conflicts")
+        test_klass.slug.should eq("testing-123-5")
+      end
 
-      # it "should add a version number (2) since it was destroyed and there is an open space" do
-      #   test_klass = @klass.create(:title => "testing 123", :description => "should add a version number (1) if the slug conflicts")
-      #   test_klass.slug.should eq("testing-123-2")
-      # end
+      it "should remove version (3) in between" do
+        test_klass = @klass.where(:slug => "testing-123-3").first
+        test_klass.destroy
+        @klass.where(:slug => "testing-123-3").first.should eq(nil)
+      end
+
+      it "should add a version number (3) since it was destroyed and there is an open space" do
+        test_klass = @klass.create(:title => "testing 123", :description => "should add a version number (3) if the slug conflicts")
+        test_klass.slug.should eq("testing-123-3")
+      end
+
+      it "should remove version (2) in between" do
+        test_klass = @klass.where(:slug => "testing-123-2").first
+        test_klass.destroy
+        @klass.where(:slug => "testing-123-2").first.should eq(nil)
+      end
+
+      it "should add a version number (2) since it was destroyed and there is an open space" do
+        test_klass = @klass.create(:title => "testing 123", :description => "should add a version number (2) if the slug conflicts")
+        test_klass.slug.should eq("testing-123-2")
+      end
+
     end
 
   end
