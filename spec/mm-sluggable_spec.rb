@@ -81,6 +81,17 @@ describe "MongoMapper::Plugins::Sluggable" do
         test_klass.slug.should eq("testing-123-2")
       end
 
+      it "should remove initial version" do
+        test_klass = @klass.where(:slug => "testing-123").first
+        test_klass.destroy
+        @klass.where(:slug => "testing-123").first.should eq(nil)
+      end
+
+      it "should add not add a version number since it was destroyed and there is an open space" do
+        @article.save
+        @article.slug.should eq("testing-123")
+      end
+
     end
 
   end
