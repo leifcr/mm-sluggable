@@ -31,7 +31,7 @@ Gem::Specification.new do |s|
   #s.rdoc_options      = ["--main", "README.rdoc"]
   s.rubygems_version  = %q{1.6.2}
 
-  s.add_dependency(%q<mongo_mapper>, [">= 0.11.0"])
+  s.add_dependency(%q<mongo_mapper>, [">= 0.12.0"])
   s.add_development_dependency(%q<rspec>, [">= 0"])
 
 end
