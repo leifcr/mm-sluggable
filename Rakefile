@@ -7,4 +7,3 @@ RSpec::Core::RakeTask.new(:spec)
 task :default => :spec
 
 gemspec = eval(File.read("mm-sluggable.gemspec"))
-
