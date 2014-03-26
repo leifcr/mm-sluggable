@@ -3,7 +3,16 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 describe "MongoMapper::Plugins::Sluggable" do
 
   before(:each) do
-    @klass = article_class
+    @klass = Class.new do
+      include MongoMapper::Document
+      set_collection_name :articles
+
+      plugin MongoMapper::Plugins::Sluggable
+
+      key :title,       String
+      key :account_id,  Integer
+      key :description, String
+    end
   end
 
   describe "with defaults" do
@@ -93,31 +102,6 @@ describe "MongoMapper::Plugins::Sluggable" do
       end
 
     end
-
-  end
-
-
-  describe "with scope" do
-    before(:each) do
-      @klass.sluggable :title, :scope => :account_id
-      @article = @klass.new(:title => "testing 123", :account_id => 1)
-    end
-
-    it "should save initial version with account_id scope" do
-      @article.save
-      test_klass = @article
-      test_klass.slug.should eq("testing-123")
-    end
-
-    it "should add a version number if the slug conflics in the scope" do
-      test_klass = @klass.create(:title => "testing 123", :account_id => 1, :description => "should add a version number if the slug conflics in the scope")
-      test_klass.slug.should eq("testing-123-1")
-    end
-
-    it "should not add a version number if the slug conflicts in a different scope" do
-      test_klass = @klass.create(:title => "testing 123", :account_id => 2, :description => "should not add a version number if the slug conflicts in a different scope")
-      test_klass.slug.should eq("testing-123")
-    end
   end
 
   describe "drop the current klasses, to avoid conflict for further tests" do
@@ -192,61 +176,5 @@ describe "MongoMapper::Plugins::Sluggable" do
       @klass.collection.remove
     end
   end
-
-  describe "with SCI" do
-    before do
-      Animal = Class.new do
-        include MongoMapper::Document
-        key :name
-      end
-      Animal.collection.remove
-
-      Dog = Class.new(Animal)
-    end
-
-    after do
-      Object.send(:remove_const, :Animal)
-      Object.send(:remove_const, :Dog)
-    end
-
-    describe "when defined in the base class" do
-      before do
-        Animal.instance_eval do
-          plugin MongoMapper::Plugins::Sluggable
-          sluggable :name
-        end
-      end
-
-      it "should scope it to the base class" do
-        animal = Animal.new(:name => "rover")
-        animal.save!
-        animal.slug.should == "rover"
-
-        dog = Dog.new(:name => "rover")
-        dog.save!
-        dog.slug.should == "rover-1"
-      end
-    end
-
-    describe "when defined on the subclass" do
-      before do
-        Dog.instance_eval do
-          plugin MongoMapper::Plugins::Sluggable
-          sluggable :name
-        end
-      end
-
-      it "should scope it to the subclass" do
-        animal = Animal.new(:name => "rover")
-        animal.save!
-        animal.should_not respond_to(:slug)
-
-        dog = Dog.new(:name => "rover")
-        dog.save!
-        dog.slug.should == "rover"
-      end
-    end
-  end
-
 
 end
