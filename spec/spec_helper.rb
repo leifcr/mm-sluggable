@@ -4,6 +4,14 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 require 'rubygems'
 require 'rspec'
 
+if ENV['TRAVIS']
+  require 'coveralls'
+  Coveralls.wear!
+elsif ENV['COVERAGE']
+  require 'simplecov'
+  SimpleCov.start
+end
+
 require 'mm-sluggable'
 
 MongoMapper.database = 'mm-sluggable-spec'

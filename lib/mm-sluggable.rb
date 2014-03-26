@@ -17,21 +17,31 @@ module MongoMapper
             :max_length   => 256,
             :always_update => true, # allow always updating slug...
             :callback      => :before_validation,
-            :callback_on   => nil,            
+            :callback_on   => nil,
           }.merge(options)
           key slug_options[:key], String
 
           #before_validation :set_slug
           self.send(slug_options[:callback], :set_slug, {:on => slug_options[:callback_on]}) if slug_options[:callback] && slug_options[:callback_on]
-          self.send(slug_options[:callback], :set_slug) if slug_options[:callback] && slug_options[:callback_on].nil?          
+          self.send(slug_options[:callback], :set_slug) if slug_options[:callback] && slug_options[:callback_on].nil?
         end
       end
 
       def set_slug
-        options = self.class.slug_options
-        
+        klass = self.class
+        while klass.respond_to?(:single_collection_parent)
+          superclass = klass.single_collection_parent
+          if superclass && superclass.respond_to?(:slug_options)
+            klass = superclass
+          else
+            break
+          end
+        end
+
+        options = klass.slug_options
+
         if options[:always_update] == false
-          return unless self.send(options[:key]).blank? 
+          return unless self.send(options[:key]).blank?
         end
 
         to_slug = self[options[:to_slug]]
@@ -52,12 +62,12 @@ module MongoMapper
         conds[options[:scope]] = self.send(options[:scope]) if options[:scope]
 
         # first see if there is a equal slug
-        used_slugs = self.class.where(conds)
+        used_slugs = klass.where(conds)
         if (used_slugs.count > 0)
           last_digit = 0 # zero for last one...
           # if we are updating, check if the current slug is same as the one we want
           conds[options[:key]] = /(#{the_slug}-\d+)/
-          used_slugs = self.class.where(conds).sort(options[:key].asc)
+          used_slugs = klass.where(conds).sort(options[:key].asc)
           new_slug_set = false
           used_slugs.each do |used_slug|
             # get the last digit through regex
