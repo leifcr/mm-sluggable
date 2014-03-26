@@ -10,14 +10,15 @@ module MongoMapper
           class_attribute :slug_options
 
           self.slug_options = {
-            :to_slug      => to_slug,
-            :key          => :slug,
-            :method       => :parameterize,
-            :scope        => nil,
-            :max_length   => 256,
-            :always_update => true, # allow always updating slug...
-            :callback      => :before_validation,
-            :callback_on   => nil,
+            to_slug:          to_slug,
+            key:              :slug,
+            method:           :parameterize,
+            scope:            nil,
+            max_length:       256,
+            start:            1,
+            always_update:    true, # allow always updating slug...
+            callback:         :before_validation,
+            callback_on:      nil,
           }.merge(options)
           key slug_options[:key], String
 
@@ -62,28 +63,36 @@ module MongoMapper
         conds[options[:scope]] = self.send(options[:scope]) if options[:scope]
 
         # first see if there is a equal slug
-        used_slugs = klass.where(conds)
+        used_slugs = klass.where(conds).fields(options[:key])
         if (used_slugs.count > 0)
           last_digit = 0 # zero for last one...
           # if we are updating, check if the current slug is same as the one we want
           conds[options[:key]] = /(#{the_slug}-\d+)/
-          used_slugs = klass.where(conds).sort(options[:key].asc)
-          new_slug_set = false
+          used_slugs = klass.where(conds).fields(options[:key])
+          used_slugs_array = Array.new
           used_slugs.each do |used_slug|
-            # get the last digit through regex
-            next_digit = used_slug.send(options[:key])[/(\d+)$/]
-            if (!next_digit.nil?)
-              # catch any numbers that are in between and free
-              if ((next_digit.to_i - last_digit.to_i) > 1)
-                the_slug = "#{raw_slug}-#{last_digit+1}"
-                new_slug_set = true
-                break # set a new slug, so all is good
+            used_slugs_array << used_slug.send(options[:key])[/(\d+)$/].to_i
+          end
+          used_slugs_array.sort!
+
+          if used_slugs_array.length <= 0
+            next_digit = options[:start]
+          else
+            prev_num = used_slugs_array.shift
+            if used_slugs_array.length == 0
+              next_digit = prev_num + 1
+            else
+              used_slugs_array.each do |slug_num|
+                if ((slug_num - prev_num) > 1)
+                  next_digit = prev_num + 1
+                  break
+                end
+                next_digit = slug_num + 1
+                prev_num = slug_num
               end
-              last_digit = next_digit.to_i
-              # puts last_digit.inspect
             end
           end
-          the_slug = "#{raw_slug}-#{last_digit+1}" if new_slug_set == false
+          the_slug = "#{raw_slug}-#{next_digit}"
         end
 
         self.send(:"#{options[:key]}=", the_slug)

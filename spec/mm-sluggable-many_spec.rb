@@ -17,9 +17,9 @@ describe "MongoMapper::Plugins::Sluggable" do
       Object.send(:remove_const, :Cow)
     end
 
-    it "should work fine after 20" do
+    it "should work fine after 12" do
       test_klass = Cow.create(:name => "moohser", :description => "should add the first version of moohser")
-      (1..15).each do |num|
+      (1..12).each do |num|
         test_klass = Cow.create(:name => "moohser", :description => "should add a version of moohser (#{num}) if the slug conflicts")
         test_klass.slug.should eq("moohser-#{num}")
       end
@@ -27,7 +27,7 @@ describe "MongoMapper::Plugins::Sluggable" do
 
     it "should work fine after 100" do
       test_klass = Cow.create(:name => "moohser", :description => "should add the first version of moohser")
-      (1..15).each do |num|
+      (1..100).each do |num|
         test_klass = Cow.create(:name => "moohser", :description => "should add a version of moohser (#{num}) if the slug conflicts")
         test_klass.slug.should eq("moohser-#{num}")
       end
