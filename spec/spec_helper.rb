@@ -13,6 +13,7 @@ elsif ENV['COVERAGE']
 end
 
 require 'mm-sluggable'
+require 'database_cleaner'
 
 MongoMapper.database = 'mm-sluggable-spec'
 
@@ -33,4 +34,14 @@ def article_class
 end
 
 RSpec.configure do |config|
+  config.before(:suite) do
+    DatabaseCleaner.strategy = :truncation
+    DatabaseCleaner.clean_with(:truncation)
+    DatabaseCleaner.start
+  end
+  config.after(:suite) do
+    DatabaseCleaner.clean
+    MongoMapper.database.command({dropDatabase: 1})
+    # Mongoid.master.command({dropDatabase: 1})
+  end
 end
