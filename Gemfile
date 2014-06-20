@@ -14,6 +14,6 @@ group :development, :test do
   gem 'simplecov', :require => false
 end
 
-gem 'activemodel', "~> 3.2"
+gem 'activemodel', "> 3.2"
 
 gem 'mongo_mapper', '~> 0.13.0'
