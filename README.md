@@ -45,18 +45,21 @@ Easiest is to add db/indexes.rb to your app, then add this to that file:
 
 ## Options
 
-Available options are:
+Available options:
 
 * :scope - scope to a specific field (default - nil)
 * :key - what the slug key is called (default - :slug) - NOTE, don't change this one
 * :method - what method to call on the field to sluggify it (default - :parameterize)
-* :callback - when to trigger the slugging (default - :before_validation_on_create)
+* :callback - when to trigger the slugging (default - :before_validation)
 * :always_update - Always update the slug on update/save/create etc.
+* :start - Which value the slugs should start with (default: 1)
+* :max_length - The maxiumum length of the slug (default: 256)
+* :disallowed\_bare\_slugs - Array of words that shouldn't be allowed as bare slugs. (default: ["new", "edit", "update", "create", "destroy"])
 
 Eg.
 
 ```ruby
-  sluggable :title, scope: :account_id, key: :title_slug, method: :to_url, always_update: true
+  sluggable :title, scope: :account_id, key: :title_slug, method: :to_url, always_update: true, disallowed_bare_slugs: ["dragon", "unicorn", "dog"]
 ```
 
 This will slug the title to the title_slug key, scoped to the account, will use String#to_url to slug it and won't add an index to the key

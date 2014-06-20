@@ -11,20 +11,24 @@ module MongoMapper
           class_attribute :slug_options
 
           self.slug_options = {
-            to_slug:          to_slug,
-            key:              :slug,
-            method:           :parameterize,
-            scope:            nil,
-            max_length:       256,
-            start:            1,
-            always_update:    true, # allow always updating slug...
-            callback:         :before_validation,
-            callback_on:      nil,
+            to_slug:                to_slug,
+            key:                    :slug,
+            method:                 :parameterize,
+            scope:                  nil,
+            max_length:             256,
+            start:                  1,
+            always_update:          true, # allow always updating slug...
+            callback:               :before_validation,
+            callback_on:            nil,
+            disallowed_bare_slugs:  []
           }.merge(options)
+
+          # Always dissallow new,edit,update,create,destroy as those are usually commands/routes
+          self.slug_options[:disallowed_bare_slugs].push(*["new", "edit", "update", "create", "destroy"])
           key slug_options[:key], String
 
           #before_validation :set_slug
-          self.send(slug_options[:callback], :set_slug, {:on => slug_options[:callback_on]}) if slug_options[:callback] && slug_options[:callback_on]
+          self.send(slug_options[:callback], :set_slug, {on: slug_options[:callback_on]}) if slug_options[:callback] && slug_options[:callback_on]
           self.send(slug_options[:callback], :set_slug) if slug_options[:callback] && slug_options[:callback_on].nil?
         end
       end
@@ -51,53 +55,66 @@ module MongoMapper
 
         # previous_slug = self[:key]
 
-        the_slug = raw_slug = to_slug.send(options[:method]).to_s[0...options[:max_length]]
+        raw_slug = to_slug.send(options[:method]).to_s[0...options[:max_length]]
+        if options[:disallowed_bare_slugs].include?(raw_slug)
+          the_slug = "#{raw_slug}-1"
+        else
+          the_slug = raw_slug
+        end
 
         # no need to set, so return
         return if (self.send(options[:key]) == the_slug)
         # also do a regexp check,
         # verify if the previous slug is "almost" the same as we want without digits/extras
         return if (/(#{the_slug}-\d+)/.match(self.send(options[:key])) != nil)
-
         conds = {}
         conds[options[:key]]   = the_slug
         conds[options[:scope]] = self.send(options[:scope]) if options[:scope]
 
         # first see if there is a equal slug
         used_slugs = klass.where(conds).fields(options[:key])
-        if (used_slugs.count > 0)
-          last_digit = 0 # zero for last one...
-          # if we are updating, check if the current slug is same as the one we want
-          conds[options[:key]] = /(#{the_slug}-\d+)/
-          used_slugs = klass.where(conds).fields(options[:key])
-          used_slugs_array = Array.new
-          used_slugs.each do |used_slug|
-            used_slugs_array << used_slug.send(options[:key])[/(\d+)$/].to_i
-          end
-          used_slugs_array.sort!
-
-          if used_slugs_array.length <= 0
-            next_digit = options[:start]
-          else
-            prev_num = used_slugs_array.shift
-            if used_slugs_array.length == 0
-              next_digit = prev_num + 1
-            else
-              used_slugs_array.each do |slug_num|
-                if ((slug_num - prev_num) > 1)
-                  next_digit = prev_num + 1
-                  break
-                end
-                next_digit = slug_num + 1
-                prev_num = slug_num
-              end
-            end
-          end
-          the_slug = "#{raw_slug}-#{next_digit}"
-        end
+        # Then get the first available slug
+        the_slug = get_unused_slug(used_slugs, options, raw_slug, klass) if (used_slugs.count > 0)
 
         self.send(:"#{options[:key]}=", the_slug)
       end
-    end
-  end
-end
+
+    private
+
+      def get_unused_slug(used_slugs, options, raw_slug, klass)
+        last_digit = 0 # zero for last one...
+        # if we are updating, check if the current slug is same as the one we want
+        conds = {}
+        conds[options[:key]] = /(#{raw_slug}-\d+)/
+        conds[options[:scope]] = self.send(options[:scope]) if options[:scope]
+
+        used_slugs = klass.where(conds).fields(options[:key])
+        used_slugs_array = Array.new
+        used_slugs.each do |used_slug|
+          used_slugs_array << used_slug.send(options[:key])[/(\d+)$/].to_i
+        end
+        used_slugs_array.sort!
+
+        if used_slugs_array.length <= 0
+          next_digit = options[:start]
+        else
+          prev_num = used_slugs_array.shift
+          if used_slugs_array.length == 0
+            next_digit = prev_num + 1
+          else
+            used_slugs_array.each do |slug_num|
+              if ((slug_num - prev_num) > 1)
+                next_digit = prev_num + 1
+                break
+              end
+              next_digit = slug_num + 1
+              prev_num = slug_num
+            end
+          end
+        end
+        "#{raw_slug}-#{next_digit}"
+      end
+
+    end #module Sluggable
+  end # module Plugins
+end # module MongoMapper
