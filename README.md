@@ -1,4 +1,7 @@
 # MongoMapper::Plugins::Sluggable
+
+NOTE: No longer maintained, as mongomapper is no longer maintained.
+
 [![Build Status](https://travis-ci.org/leifcr/mm-sluggable.svg?branch=master)](https://travis-ci.org/leifcr/mm-sluggable) [![Coverage Status](https://coveralls.io/repos/leifcr/mm-sluggable/badge.png)](https://coveralls.io/r/leifcr/mm-sluggable) [![Dependency Status](https://gemnasium.com/leifcr/mm-sluggable.svg)](https://gemnasium.com/leifcr/mm-sluggable)
 
 Add slugs to your fields. And use it for nice urls. Difference from other mm-sluggables: This uses regexp query for checking conflicting slugs, so you get only 2 queries even if your collection has 1000 upon 1000 of documents.
